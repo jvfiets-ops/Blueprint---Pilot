@@ -1,0 +1,336 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // bcrypt hash
+  role         String   @default("user")
+  approved     Boolean  @default(false)
+  gdprConsent  Boolean  @default(false)
+  category     String   @default("") // "atleet" | "artiest" | "coach" | "ondernemer" | "expert" | ""
+  language     String   @default("nl")
+  createdAt    DateTime @default(now())
+
+  memory              UserMemory?
+  reflections         Reflection[]
+  environmentPersons  EnvironmentPerson[]
+  performanceProfiles PerformanceProfile[]
+  roleModels          RoleModel[]
+  mentors             Mentor[]
+  personalityProfile  PersonalityProfile?
+  ergodicDilemmas     ErgodicDilemma[]
+  strategicGoals      StrategicGoal[]
+  dailyGoals          DailyGoal[]
+  chatSessions        ChatSession[]
+  activities          UserActivity[]
+  usageLimits         UsageLimit[]
+  aiSettings          UserAISetting?
+  matchScript         MatchScript?
+  gameFaces           GameFace[]
+  energyAudits        EnergyAudit[]
+  intentions          Intention[]
+  weekReviews         WeekReview[]
+}
+
+model UserMemory {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  summary            String?
+  moodPatterns       String?  // JSON
+  recurringStressors String?  // JSON
+  behavioralSignals  String?  // JSON
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Reflection {
+  id                            String   @id @default(cuid())
+  userId                        String
+  createdAt                     DateTime @default(now())
+  moodIcon                      String?
+  moodScore                     Int?
+  conversationTranscript        String?  // JSON
+  eventLabel                    String   @default("Training")
+  eventReflectionText           String?
+  eventReflectionVoiceTranscript String?
+  aiSummary                     String?
+  appVersion                    String   @default("1.0")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EnvironmentPerson {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  name      String
+  role      String?
+  emoji     String   @default("👤")
+  color     String   @default("#7c3aed")
+  gives     String   @default("[]") // JSON array
+  costs     String   @default("[]") // JSON array
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PerformanceProfile {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  context   String   // "training" | "wedstrijd" | "algemeen"
+
+  bestVersionName                String?
+  bestVersionDescription         String?
+  bestVersionKeywords            String   @default("[]") // JSON
+  bestVersionCodewords           String   @default("[]") // JSON
+  bestVersionExternalPerspective String?
+
+  worstVersionName                String?
+  worstVersionDescription         String?
+  worstVersionKeywords            String   @default("[]") // JSON
+  worstVersionCodewords           String   @default("[]") // JSON
+  worstVersionExternalPerspective String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, context])
+}
+
+model RoleModel {
+  id                      String   @id @default(cuid())
+  userId                  String
+  createdAt               DateTime @default(now())
+  name                    String
+  domain                  String?
+  emoji                   String   @default("⭐")
+  whyInspiring            String?
+  whatMakesThemInspiring  String   @default("[]") // JSON
+  personalMeaning         String?
+  qualitiesToAdopt        String   @default("[]") // JSON
+  connectedToBestVersion  Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Mentor {
+  id                String   @id @default(cuid())
+  userId            String
+  createdAt         DateTime @default(now())
+  name              String
+  role              String?  // "coach" | "manager" | "ouder" | "leraar" | "anders"
+  emoji             String   @default("🧭")
+  whatTheyTeachMe   String?
+  howTheyHelpMe     String?
+  keyLessons        String   @default("[]") // JSON array
+  contactFrequency  String?  // "wekelijks" | "maandelijks" | "af en toe"
+  gratitudeNote     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DailyGoal {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String   // "YYYY-MM-DD"
+  text      String
+  category  String   @default("algemeen") // mentaal | fysiek | leefstijl | omgeving | algemeen
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model ChatSession {
+  id                 String   @id @default(cuid())
+  userId             String
+  title              String?
+  messages           String   @default("[]") // JSON
+  summary            String?
+  stressorsDetected  String?  // JSON
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ErgodicDilemma {
+  id              String   @id @default(cuid())
+  userId          String
+  createdAt       DateTime @default(now())
+  dilemma         String   // De situatie/het dilemma
+  optionA         String   // Keuze A
+  optionB         String   // Keuze B
+  choice24h       String   // "a" | "b" — waar is je 24u-versie blij mee?
+  reason24h       String?  // Waarom?
+  choice10y       String   // "a" | "b" — waar is je 10-jaar-versie blij mee?
+  reason10y       String?  // Waarom?
+  aligned         Boolean  // Zijn de keuzes gelijk?
+  reflection      String?  // Eigen reflectie
+  chosenOption    String?  // "a" | "b" | null — wat kies je uiteindelijk?
+  category        String   @default("algemeen") // carriere | relaties | gezondheid | financieel | persoonlijk | algemeen
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StrategicGoal {
+  id              String   @id @default(cuid())
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  title           String
+  category        String   @default("persoonlijk") // persoonlijk | professioneel | mentaal | fysiek | sociaal
+  timeframe       String   @default("3 maanden")  // 1 maand | 3 maanden | 6 maanden | 1 jaar
+  description     String?
+  whyImportant    String?  // Waarom is dit doel belangrijk?
+  successLooksLike String? // Hoe ziet succes eruit?
+  obstacles       String   @default("[]") // JSON array
+  actions         String   @default("[]") // JSON array of {text, done}
+  confidence      Int      @default(5)    // 1-10 hoe zeker voel je je
+  progress        Int      @default(0)    // 0-100
+  status          String   @default("actief") // actief | bereikt | gepauzeerd
+  reflections     String   @default("[]") // JSON array of {date, text, confidence}
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PersonalityProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  openness        Float    // 0-100
+  conscientiousness Float  // 0-100
+  extraversion    Float    // 0-100
+  agreeableness   Float    // 0-100
+  neuroticism     Float    // 0-100
+  answers         String   @default("[]") // JSON array of answers
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "login" | "chat" | "reflection" | "goal" | "personality"
+  duration  Int?     // seconds spent, if applicable
+  metadata  String?  // JSON, optional extra info
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}
+
+model AllowedEmail {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  note      String?  // optionele notitie, bijv. "Jesse - pilot groep"
+  createdAt DateTime @default(now())
+}
+
+model UsageLimit {
+  id           String @id @default(cuid())
+  userId       String
+  date         String // "YYYY-MM-DD"
+  messageCount Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model UserAISetting {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  provider        String?  // "anthropic" | "openai"
+  encryptedApiKey String?
+  modelOverride   String?
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MatchScript {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  context         String   @default("wedstrijd") // wedstrijd | presentatie | gesprek
+  visualization   String?  // Stap 1: Wat zie je?
+  focusWords      String   @default("[]") // JSON array of 3 focuswoorden
+  breathing       String?  // Stap 3: Ademhalingsritme
+  bodyLanguage    String?  // Stap 4: Hoe sta/beweeg je?
+  actionPlan      String?  // Stap 5: Eerste 3 acties
+  mantra          String?  // Stap 6: Persoonlijke mantra
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GameFace {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String   @default("Wedstrijd")
+  codewords   String   @default("[]") // JSON array of 1-3 codewoorden
+  color       String   @default("#A67C52")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EnergyAudit {
+  id          String   @id @default(cuid())
+  userId      String
+  activity    String
+  quadrant    String   // "high-energy-high-time" | "high-energy-low-time" | "low-energy-high-time" | "low-energy-low-time"
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Intention {
+  id            String   @id @default(cuid())
+  userId        String
+  date          String   // "YYYY-MM-DD"
+  activity      String   // Wat ga je doen?
+  intention     String   // Wat is je intentie?
+  followUpScore Int?     // 1-10 hoe ging het?
+  followUpNote  String?  // Korte terugkoppeling
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WeekReview {
+  id            String   @id @default(cuid())
+  userId        String
+  weekStart     String   // "YYYY-MM-DD" (maandag)
+  highlight     String?  // Hoogtepunt van de week
+  challenge     String?  // Waar liep je tegenaan?
+  nextWeek      String?  // Intentie voor volgende week
+  aiSummary     String?  // AI-gegenereerde analyse
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+}

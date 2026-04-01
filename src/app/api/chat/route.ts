@@ -1,0 +1,86 @@
+export const runtime = "nodejs";
+
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { getProvider } from "@/lib/ai/provider";
+import { buildReflectionSystemPrompt } from "@/lib/system-prompts";
+import { decrypt } from "@/lib/encryption";
+
+const DEMO_LIMIT = 20;
+
+export async function POST(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { messages } = await req.json();
+
+  // Load user memory
+  const memory = await prisma.userMemory.findUnique({ where: { userId: user.id } });
+
+  // Load AI settings
+  const aiSettings = await prisma.userAISetting.findUnique({ where: { userId: user.id } });
+
+  let decryptedKey: string | undefined;
+  let hasOwnKey = false;
+
+  if (aiSettings?.encryptedApiKey) {
+    try {
+      decryptedKey = decrypt(aiSettings.encryptedApiKey);
+      hasOwnKey = true;
+    } catch {
+      // Decryption failed — fall back to demo
+    }
+  }
+
+  // Check usage limits if using demo key (and not scripted fallback)
+  if (!hasOwnKey && process.env.ANTHROPIC_API_KEY) {
+    const today = new Date().toISOString().slice(0, 10);
+    const usage = await prisma.usageLimit.findUnique({
+      where: { userId_date: { userId: user.id, date: today } },
+    });
+    const count = usage?.messageCount ?? 0;
+    if (count >= DEMO_LIMIT) {
+      return NextResponse.json({ error: "Demo limiet bereikt", limit: DEMO_LIMIT }, { status: 429 });
+    }
+    await prisma.usageLimit.upsert({
+      where: { userId_date: { userId: user.id, date: today } },
+      create: { userId: user.id, date: today, messageCount: 1 },
+      update: { messageCount: { increment: 1 } },
+    });
+  }
+
+  const systemPrompt = buildReflectionSystemPrompt(user.name, memory ? {
+    summary: memory.summary,
+    mood_patterns: memory.moodPatterns ? JSON.parse(memory.moodPatterns) : null,
+    recurring_stressors: memory.recurringStressors ? JSON.parse(memory.recurringStressors) : null,
+    behavioral_signals: memory.behavioralSignals ? JSON.parse(memory.behavioralSignals) : null,
+  } : null);
+
+  try {
+    const provider = getProvider(
+      aiSettings ? { provider: aiSettings.provider as "anthropic" | "openai", encryptedApiKey: aiSettings.encryptedApiKey, modelOverride: aiSettings.modelOverride } : null,
+      decryptedKey
+    );
+    const stream = provider.chat(messages, systemPrompt);
+
+    const readable = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of stream) {
+            controller.enqueue(encoder.encode(chunk));
+          }
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(readable, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  } catch (err) {
+    console.error("AI error:", err);
+    return NextResponse.json({ error: "AI niet beschikbaar" }, { status: 500 });
+  }
+}

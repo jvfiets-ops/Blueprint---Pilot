@@ -14,9 +14,9 @@ model User {
   name      String
   password  String   // bcrypt hash
   role         String   @default("user")
-  approved     Boolean  @default(false)
-  gdprConsent  Boolean  @default(false)
-  category     String   @default("") // "atleet" | "artiest" | "coach" | "ondernemer" | "expert" | ""
+  approved     Boolean  @default(true)
+  gdprConsent  Boolean  @default(true)
+  category     String   @default("atleet")
   language     String   @default("nl")
   createdAt    DateTime @default(now())
 

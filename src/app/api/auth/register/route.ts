@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       email: normalizedEmail,
       password: hash,
       role: isAdmin ? "admin" : "user",
-      approved: isAdmin, // admin is auto-approved, others wait
+      approved: true, // pilot: everyone is auto-approved
     },
   });
 

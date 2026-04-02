@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import RolModellenClient from "./RolModellenClient";

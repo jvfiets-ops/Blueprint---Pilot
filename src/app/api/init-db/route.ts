@@ -122,6 +122,13 @@ export async function GET() {
     for (const stmt of statements) {
       await prisma.$executeRawUnsafe(stmt);
     }
+    // Create pilot user if not exists
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO "User" (id, email, name, password, role, approved, "gdprConsent", category, language)
+      VALUES ('pilot-user', 'pilot@blueprint.app', 'Pilot', 'no-password', 'admin', true, true, 'atleet', 'nl')
+      ON CONFLICT (id) DO NOTHING
+    `);
+
     return NextResponse.json({ ok: true, tables: statements.length });
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });

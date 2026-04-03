@@ -1,27 +1,32 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLang } from "@/hooks/useLang";
+import { getT } from "@/lib/i18n";
 
 const NAV_ITEMS = [
-  { href: "/dashboard/reflectie", icon: "🪞", label: "Reflectie" },
-  { href: "/dashboard/coach", icon: "🧠", label: "Mentaal" },
-  { href: "/dashboard/toolkit/match-script", icon: "📋", label: "Match Script" },
-  { href: "/dashboard/toolkit/game-face", icon: "🎯", label: "Game Face" },
+  { href: "/dashboard", icon: "🪞", labelKey: "navReflectie" as const, exact: true, alsoMatch: ["/dashboard/reflectie"] },
+  { href: "/dashboard/coach", icon: "🧠", labelKey: "navCoach" as const },
+  { href: "/dashboard/toolkit", icon: "🛠️", labelKey: "navToolkit" as const },
+  { href: "/dashboard/blauwdruk", icon: "🗺️", labelKey: "navBlauwdruk" as const },
+  { href: "/dashboard/contact", icon: "📞", labelKey: "navContact" as const },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [lang] = useLang();
+  const t = getT(lang);
 
   return (
     <aside className="flex h-full w-52 flex-col border-r border-[#2a3e33] bg-[#152620]">
       <nav className="flex-1 overflow-y-auto px-2 py-4">
         <p className="mb-3 px-2.5 text-[9px] font-semibold uppercase tracking-widest text-gray-600">
-          Pilot
+          Het Fundament
         </p>
 
         {NAV_ITEMS.map((item) => {
-          const active = item.href === "/dashboard/reflectie"
-            ? pathname === "/dashboard/reflectie" || pathname === "/dashboard"
+          const active = item.exact
+            ? pathname === item.href || (item.alsoMatch?.some(p => pathname.startsWith(p)) ?? false)
             : pathname.startsWith(item.href);
           return (
             <Link
@@ -34,23 +39,11 @@ export default function Sidebar() {
               }`}
             >
               <span className="text-base">{item.icon}</span>
-              <span className="font-medium">{item.label}</span>
+              <span className="font-medium">{t[item.labelKey] ?? item.labelKey}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Jesse CTA */}
-      <div className="border-t border-[#2a3e33] p-3">
-        <div className="rounded-xl bg-[#A67C52]/10 p-3 text-center">
-          <p className="text-[11px] leading-relaxed text-[#c9a67a]">
-            Dieper ingaan op je ontwikkeling?
-          </p>
-          <p className="mt-1 text-xs font-semibold text-[#A67C52]">
-            Plan een sessie met Jesse →
-          </p>
-        </div>
-      </div>
     </aside>
   );
 }

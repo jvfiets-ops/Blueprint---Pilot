@@ -1,23 +1,28 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLang } from "@/hooks/useLang";
+import { getT } from "@/lib/i18n";
 
 const TABS = [
-  { href: "/dashboard/reflectie", icon: "🪞", label: "Reflectie" },
-  { href: "/dashboard/coach", icon: "🧠", label: "Mentaal" },
-  { href: "/dashboard/toolkit/match-script", icon: "📋", label: "Script" },
-  { href: "/dashboard/toolkit/game-face", icon: "🎯", label: "Game Face" },
+  { href: "/dashboard", icon: "🪞", labelKey: "navReflectie" as const, exact: true, alsoMatch: ["/dashboard/reflectie"] },
+  { href: "/dashboard/coach", icon: "🧠", labelKey: "navCoachShort" as const },
+  { href: "/dashboard/toolkit", icon: "🛠️", labelKey: "navToolkit" as const },
+  { href: "/dashboard/blauwdruk", icon: "🗺️", labelKey: "navBlauwdrukShort" as const },
+  { href: "/dashboard/contact", icon: "📞", labelKey: "navContactShort" as const },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [lang] = useLang();
+  const t = getT(lang);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#2a3e33] bg-[#152620] md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#2a3e33] bg-[#152620] md:hidden safe-area-bottom">
       <div className="flex">
         {TABS.map((tab) => {
-          const active = tab.href === "/dashboard/reflectie"
-            ? pathname === "/dashboard/reflectie" || pathname === "/dashboard"
+          const active = tab.exact
+            ? pathname === tab.href || (tab.alsoMatch?.some(p => pathname.startsWith(p)) ?? false)
             : pathname.startsWith(tab.href);
           return (
             <Link
@@ -28,7 +33,7 @@ export default function BottomNav() {
               }`}
             >
               <span className="text-lg">{tab.icon}</span>
-              <span className="text-[9px] font-medium">{tab.label}</span>
+              <span className="text-[8px] font-medium">{t[tab.labelKey] ?? tab.labelKey}</span>
             </Link>
           );
         })}

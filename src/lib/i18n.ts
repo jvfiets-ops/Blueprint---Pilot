@@ -29,6 +29,115 @@ const translations = {
   navInstellingen: t("Instellingen", "Settings"),
   navUitloggen: t("Uitloggen", "Log out"),
   navReflectie: t("Reflectie", "Reflection"),
+  navCoachShort: t("Coach", "Coach"),
+  navBlauwdruk: t("Mijn Blauwdruk", "My Blueprint"),
+  navBlauwdrukShort: t("Blauwdruk", "Blueprint"),
+  navContact: t("Contact met Jesse", "Contact Jesse"),
+  navContactShort: t("Jesse", "Jesse"),
+
+  // ─── Reflectie v2 ──────────────────────────────────────────
+  refDevGoalQ: t("Waar wil je beter in worden?", "What do you want to improve at?"),
+  refDevGoalLabel: t("Ontwikkeldoel", "Development goal"),
+  refDevGoalHint: t("Dit is je langetermijndoel. Je kunt het altijd wijzigen.", "This is your long-term goal. You can always change it."),
+  refIntentionQ: t("Wat wil je uit vandaag halen? Waar ligt je focus?", "What do you want to get out of today? Where is your focus?"),
+  refIntentionLabel: t("Dagelijkse intentie", "Daily intention"),
+  refReviewQ: t("Is het gelukt? Waarom wel of niet?", "Did you succeed? Why or why not?"),
+  refReviewLabel: t("Dagelijkse terugblik", "Daily review"),
+  refHistory: t("Eerdere reflecties", "Previous reflections"),
+  refNoHistory: t("Nog geen eerdere reflecties.", "No previous reflections yet."),
+  refEdit: t("Wijzig", "Edit"),
+  refSaved: t("Opgeslagen", "Saved"),
+  refSave: t("Opslaan", "Save"),
+
+  // ─── Coach v2 ──────────────────────────────────────────────
+  coachTitle: t("Persoonlijke Coach", "Personal Coach"),
+  coachWelcome: t("Hoi! Waar wil je vandaag mee geholpen worden?", "Hi! What would you like help with today?"),
+  coachSetupTitle: t("Hoe wil je de coach gebruiken?", "How do you want to use the coach?"),
+  coachOptA: t("Ik gebruik mijn eigen API-sleutel", "I'll use my own API key"),
+  coachOptADesc: t("Volledige AI-gestuurde coaching met Claude", "Full AI-powered coaching with Claude"),
+  coachOptB: t("Doorgaan zonder API", "Continue without API"),
+  coachOptBDesc: t("Begeleide reflectie via vaste vragen", "Guided reflection through fixed questions"),
+  coachApiPlaceholder: t("Plak je Anthropic API-sleutel hier...", "Paste your Anthropic API key here..."),
+  coachApiSave: t("Opslaan & starten", "Save & start"),
+  coachScriptedQ1: t("Waar wil je vandaag mee geholpen worden?", "What would you like help with today?"),
+  coachScriptedQ2: t("Hoe lang speelt dit al?", "How long has this been going on?"),
+  coachScriptedQ2Opts: t("Kort (dagen)|Weken|Maanden|Langer", "Short (days)|Weeks|Months|Longer"),
+  coachScriptedQ3: t("Wat heb je al geprobeerd?", "What have you already tried?"),
+  coachScriptedSummary: t("Samenvatting van je reflectie", "Summary of your reflection"),
+  coachScriptedEnd: t("Deel dit met Jesse voor verdere begeleiding.", "Share this with Jesse for further guidance."),
+  coachNewChat: t("Nieuw gesprek", "New conversation"),
+
+  // ─── Toolkit v2 ────────────────────────────────────────────
+  toolkitTitle: t("Mentale Toolkit", "Mental Toolkit"),
+  toolMatchScript: t("Match Script", "Match Script"),
+  toolMatchScriptDesc: t("Concrete, actiegerichte cues voor focus tijdens een wedstrijd.", "Concrete, action-oriented cues for focus during a match."),
+  toolMatchScriptExplain: t("Een Match Script bestaat uit concrete, actiegerichte cues die je helpen om gefocust en taakgericht te blijven tijdens een wedstrijd.", "A Match Script consists of concrete, action-oriented cues that help you stay focused and task-oriented during a match."),
+  toolMSActions: t("Wat zijn jouw 3-5 belangrijkste actiepunten tijdens een wedstrijd?", "What are your 3-5 most important action points during a match?"),
+  toolMSRole: t("Wat is je rol in het team en wat vraagt die rol van jou?", "What is your role in the team and what does that role ask of you?"),
+  toolMSReminder: t("Wat wil je jezelf herinneren als het moeilijk wordt?", "What do you want to remind yourself when things get tough?"),
+  toolMSAddAction: t("+ Actiepunt toevoegen", "+ Add action point"),
+
+  toolGameFace: t("Game Face", "Game Face"),
+  toolGameFaceDesc: t("Je optimale mentale staat — intern en extern.", "Your optimal mental state — internal and external."),
+  toolGameFaceExplain: t("Je Game Face is jouw optimale mentale staat. Intern: hoe voel je je. Extern: hoe kom je over.", "Your Game Face is your optimal mental state. Internal: how you feel. External: how you come across."),
+  toolGFMemory: t("Beschrijf je beste wedstrijd(en) — hoe voelde je je daarin?", "Describe your best match(es) — how did you feel?"),
+  toolGFImagination: t("Hoe zou je droomversie van jezelf als speler eruitzien?", "What would your dream version of yourself as a player look like?"),
+  toolGFPerception: t("Wie wil je zijn als speler? Wat wil je uitstralen?", "Who do you want to be as a player? What do you want to radiate?"),
+  toolGFWords: t("Mijn Game Face in 2-3 woorden:", "My Game Face in 2-3 words:"),
+  toolGFMetaphor: t("Mijn referentie of metafoor:", "My reference or metaphor:"),
+
+  toolBesteVersie: t("Mijn Beste Versie", "My Best Version"),
+  toolBesteVersieDesc: t("Beschrijf jezelf op je allerbest.", "Describe yourself at your very best."),
+  toolBVBest: t("Wat was je beste wedstrijd of prestatiemoment ooit?", "What was your best match or performance moment ever?"),
+  toolBVFeeling: t("Welk gevoel riep dat op?", "What feeling did that evoke?"),
+  toolBVBehavior: t("Hoe zag je gedrag eruit op dat moment?", "What did your behavior look like at that moment?"),
+  toolBVSelf: t("Hoe beschrijf jij jezelf op je allerbest?", "How do you describe yourself at your very best?"),
+  toolBVOthers: t("Hoe zien anderen jou op het moment dat jij de beste versie van jezelf bent?", "How do others see you when you are the best version of yourself?"),
+
+  toolReset: t("Resetroutine", "Reset Routine"),
+  toolResetDesc: t("Snel terug naar focus na een fout of tegenslag.", "Quickly return to focus after a mistake or setback."),
+  toolResetExplain: t("Een resetroutine helpt je om na een fout of tegenvaller snel terug te keren naar focus — gericht op wat je kunt controleren.", "A reset routine helps you quickly return to focus after a mistake — focused on what you can control."),
+  toolResetFault: t("Hoe reageer je nu typisch op een fout?", "How do you typically react to a mistake?"),
+  toolResetLetGo: t("Wat helpt jou om los te laten?", "What helps you let go?"),
+  toolResetSignal: t("Wat is jouw signaal om weer vooruit te kijken?", "What is your signal to look forward again?"),
+  toolResetControl: t("Wat kun je altijd controleren, ook als het moeilijk gaat?", "What can you always control, even when things are difficult?"),
+
+  // ─── Blauwdruk ─────────────────────────────────────────────
+  blauwdrukTitle: t("Mijn Blauwdruk", "My Blueprint"),
+  blauwdrukCenter: t("De beste versie van mezelf", "The best version of myself"),
+  blauwdrukIntro: t("Klik op een domein om te ontdekken hoe het voor of tegen je werkt.", "Click a domain to discover how it works for or against you."),
+  blauwdrukPositive: t("Wanneer werkt dit domein voor jou? Wat geeft het je rust of energie?", "When does this domain work for you? What gives you peace or energy?"),
+  blauwdrukNegative: t("Wanneer werkt dit domein tegen jou? Wat verhoogt je stress?", "When does this domain work against you? What increases your stress?"),
+  blauwdrukImprove: t("Wat wil je hierin veranderen of verbeteren?", "What do you want to change or improve in this area?"),
+  blauwdrukAdd: t("+ Domein toevoegen", "+ Add domain"),
+  blauwdrukCTA: t("De blauwdruk geeft inzicht. Maar inzicht alleen is niet genoeg — ontwikkeling vereist begeleiding. Bespreek dit met Jesse.", "The blueprint provides insight. But insight alone is not enough — development requires guidance. Discuss this with Jesse."),
+
+  // Default domains
+  domFysiek: t("Fysiek", "Physical"),
+  domMentaal: t("Mentaal", "Mental"),
+  domMedia: t("Media & publieke druk", "Media & public pressure"),
+  domFinancien: t("Financiën & contracten", "Finances & contracts"),
+  domRelaties: t("Relaties & sociale omgeving", "Relationships & social environment"),
+  domSlaap: t("Slaap & herstel", "Sleep & recovery"),
+  domIdentiteit: t("Identiteit & zelfbeeld", "Identity & self-image"),
+  domTijd: t("Tijdsmanagement & rust", "Time management & rest"),
+  domFamilie: t("Familie & privéleven", "Family & private life"),
+  domGeloof: t("Geloof & waarden", "Faith & values"),
+  domLeven: t("Leven buiten de sport", "Life outside sports"),
+  domVertrouwd: t("Vertrouwde kring", "Trusted circle"),
+
+  // ─── Contact ───────────────────────────────────────────────
+  contactTitle: t("Contact met Jesse", "Contact Jesse"),
+  contactMessage: t(
+    "Deze app geeft je overzicht, structuur en rust. Maar ontwikkeling vereist begeleiding. Jouw gedachten en gevoelens delen met een coach is de volgende stap. Jesse helpt je uitdiepen wat voor jou belangrijk is — en welke experts je op inhoud verder kunnen helpen.",
+    "This app gives you overview, structure and peace. But development requires guidance. Sharing your thoughts and feelings with a coach is the next step. Jesse helps you deepen what matters to you — and which experts can help you further."
+  ),
+  contactCTA: t("Plan een sessie met Jesse", "Schedule a session with Jesse"),
+
+  // ─── Voice ─────────────────────────────────────────────────
+  voiceStart: t("Inspreken", "Speak"),
+  voiceStop: t("Stoppen", "Stop"),
+  voiceListening: t("Luisteren...", "Listening..."),
 
   // Old sidebar items (kept for compatibility)
   secStressoren: t("Stressoren", "Stressors"),
@@ -56,8 +165,7 @@ const translations = {
   openCoach: t("Open coach", "Open coach"),
   recentGoals: t("Recente doelen", "Recent goals"),
 
-  // ─── Coach page ────────────────────────────────────────────
-  coachTitle: t("Mentale Coach", "Mental Coach"),
+  // ─── Coach page (legacy, kept for compat) ──────────────────
   coachSub: t("AI-begeleiding op basis van SDT & CGT", "AI coaching based on SDT & CGT"),
   coachTabCoaching: t("Coaching", "Coaching"),
   coachTabPractice: t("Oefenen", "Practice"),
@@ -76,8 +184,7 @@ const translations = {
   practiceTraitsPh: t("Bijv. ongeduldig, defensief, afgeleid...", "E.g. impatient, defensive, distracted..."),
   practiceStart: t("Start oefengesprek", "Start practice"),
 
-  // ─── Toolkit hub ───────────────────────────────────────────
-  toolkitTitle: t("Toolkit", "Toolkit"),
+  // ─── Toolkit hub (legacy) ───────────────────────────────────
   toolkitSub: t("Tools voor zelfinzicht, voorbereiding en groei", "Tools for self-insight, preparation and growth"),
   toolkitFilled: t("ingevuld", "filled in"),
   toolkitUpdate: t("bekijk en update regelmatig", "review and update regularly"),
@@ -90,29 +197,7 @@ const translations = {
   secEnergie: t("Omgeving & Energie", "Environment & Energy"),
   secEnergie_desc: t("Beheer je omgeving en energiebalans", "Manage your environment and energy balance"),
 
-  // Tool cards
-  toolMatchScript: t("Match Script", "Match Script"),
-  toolMatchScriptDesc: t("Stapsgewijze mentale voorbereiding", "Step-by-step mental preparation"),
-  toolGameFace: t("Game Face", "Game Face"),
-  toolGameFaceDesc: t("Codewoorden die je mentale staat activeren", "Codewords that activate your mental state"),
-  toolPersoonlijkheid: t("Persoonlijkheid", "Personality"),
-  toolPersoonlijkheidDesc: t("Ontdek je Big 5 profiel", "Discover your Big 5 profile"),
-  toolBesteVersie: t("Beste versie", "Best version"),
-  toolBesteVersieDesc: t("Definieer je ideale prestatieprofiel", "Define your ideal performance profile"),
-  toolRolmodellen: t("Rolmodellen", "Role models"),
-  toolRolmodellenDesc: t("Wie inspireert jou?", "Who inspires you?"),
-  toolMentoren: t("Mentoren", "Mentors"),
-  toolMentorenDesc: t("Wie begeleidt je?", "Who guides you?"),
-  toolWeekreview: t("Weekreview", "Week review"),
-  toolWeekreviewDesc: t("Wekelijkse terugblik op patronen", "Weekly review of patterns"),
-  toolErgodisch: t("Ergodisch denken", "Ergodic thinking"),
-  toolErgodischDesc: t("24-uur vs 10-jaar perspectief", "24-hour vs 10-year perspective"),
-  toolIntenties: t("Intenties", "Intentions"),
-  toolIntentiesDesc: t("Bewuste intenties met terugkoppeling", "Conscious intentions with follow-up"),
-  toolOmgeving: t("Omgeving", "Environment"),
-  toolOmgevingDesc: t("Wie geeft en wie kost energie?", "Who gives and who costs energy?"),
-  toolEnergieAudit: t("Energieaudit", "Energy audit"),
-  toolEnergieAuditDesc: t("Welke activiteiten geven of kosten energie?", "Which activities give or cost energy?"),
+  // (old tool card keys removed — replaced by v2 keys above)
 
   // ─── Match Script ──────────────────────────────────────────
   msTitle: t("Match Script", "Match Script"),

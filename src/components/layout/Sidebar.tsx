@@ -18,7 +18,7 @@ export default function Sidebar() {
   const t = getT(lang);
 
   return (
-    <aside className="flex h-full w-52 flex-col border-r border-[#2a3e33] bg-[#152620]">
+    <aside className="relative z-30 flex h-full w-52 flex-col border-r border-[#2a3e33] bg-[#152620]">
       <nav className="flex-1 overflow-y-auto px-2 py-4">
         <p className="mb-3 px-2.5 text-[9px] font-semibold uppercase tracking-widest text-gray-600">
           Het Fundament

@@ -187,7 +187,6 @@ export default function BlauwdrukPage() {
           ref={canvasRef}
           onClick={handleCanvasClick}
           className="h-[350px] w-full cursor-pointer"
-          style={{ touchAction: "none" }}
         />
       </div>
 

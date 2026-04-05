@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLang } from "@/hooks/useLang";
-import { getT } from "@/lib/i18n";
+import { getT, type Lang } from "@/lib/i18n";
 import VoiceInput from "@/components/VoiceInput";
 import Link from "next/link";
 
@@ -19,7 +19,7 @@ const DEFAULT_DOMAIN_KEYS = [
   "domIdentiteit", "domTijd", "domFamilie", "domGeloof", "domLeven", "domVertrouwd",
 ] as const;
 
-function getTranslatedName(nameKey: string | undefined, name: string, lang: string): string {
+function getTranslatedName(nameKey: string | undefined, name: string, lang: Lang): string {
   if (!nameKey) return name;
   const tr = getT(lang);
   return tr[nameKey as keyof typeof tr] || name;

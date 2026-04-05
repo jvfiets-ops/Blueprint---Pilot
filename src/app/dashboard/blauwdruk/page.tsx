@@ -8,6 +8,7 @@ import Link from "next/link";
 interface Domain {
   id: string;
   name: string;
+  nameKey?: string; // i18n key for translation
   positive: string;
   negative: string;
   improve: string;
@@ -27,16 +28,23 @@ export default function BlauwdrukPage() {
   const [newDomain, setNewDomain] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Load domains
+  // Load domains — translate names on every language change
   useEffect(() => {
     const stored = localStorage.getItem("pilot-blueprint");
     if (stored) {
-      setDomains(JSON.parse(stored));
+      const parsed: Domain[] = JSON.parse(stored);
+      // Re-translate domains that have a nameKey
+      const translated = parsed.map(d => ({
+        ...d,
+        name: d.nameKey ? (t[d.nameKey as keyof typeof t] || d.name) : d.name,
+      }));
+      setDomains(translated);
     } else {
       // Initialize with defaults
       const defaults: Domain[] = DEFAULT_DOMAIN_KEYS.map((key, i) => ({
         id: `d${i}`,
         name: t[key] || key,
+        nameKey: key,
         positive: "",
         negative: "",
         improve: "",

@@ -5,7 +5,7 @@ import { useLang } from "@/hooks/useLang";
 import { getT } from "@/lib/i18n";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: "🪞", labelKey: "navReflectie" as const, exact: true, alsoMatch: ["/dashboard/reflectie"] },
+  { href: "/dashboard", icon: "🪞", labelKey: "navReflectie" as const, exact: true },
   { href: "/dashboard/coach", icon: "🧠", labelKey: "navCoach" as const },
   { href: "/dashboard/toolkit", icon: "🛠️", labelKey: "navToolkit" as const },
   { href: "/dashboard/blauwdruk", icon: "🗺️", labelKey: "navBlauwdruk" as const },
@@ -26,8 +26,8 @@ export default function Sidebar() {
 
         {NAV_ITEMS.map((item) => {
           const active = item.exact
-            ? pathname === item.href || (item.alsoMatch?.some(p => pathname.startsWith(p)) ?? false)
-            : pathname.startsWith(item.href);
+            ? pathname === item.href || pathname === "/dashboard/reflectie"
+            : pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}

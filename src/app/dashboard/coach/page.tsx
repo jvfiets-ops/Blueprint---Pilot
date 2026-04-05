@@ -25,6 +25,10 @@ export default function CoachPage() {
   // Scripted coach state
   const coachStateRef = useRef(createInitialState());
 
+  // Settings modal
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsKey, setSettingsKey] = useState("");
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
   // Check if mode was already chosen
@@ -56,12 +60,39 @@ export default function CoachPage() {
     setMsgs([{ role: "assistant", content: getScriptedGreeting(lang) }]);
   };
 
-  const resetMode = () => {
-    localStorage.removeItem("pilot-coach-mode");
+  const openSettings = () => {
+    setSettingsKey(apiKey);
+    setShowSettings(true);
+  };
+
+  const saveApiKey = () => {
+    if (settingsKey.trim()) {
+      localStorage.setItem("pilot-coach-mode", "ai");
+      localStorage.setItem("pilot-coach-apikey", settingsKey.trim());
+      setApiKey(settingsKey.trim());
+      setMode("ai");
+      if (msgs.length === 0) {
+        setMsgs([{ role: "assistant", content: t.coachWelcome }]);
+      }
+    } else {
+      localStorage.setItem("pilot-coach-mode", "scripted");
+      localStorage.removeItem("pilot-coach-apikey");
+      setApiKey("");
+      setMode("scripted");
+      if (msgs.length === 0) {
+        coachStateRef.current = createInitialState();
+        setMsgs([{ role: "assistant", content: getScriptedGreeting(lang) }]);
+      }
+    }
+    setShowSettings(false);
+  };
+
+  const removeApiKey = () => {
+    localStorage.setItem("pilot-coach-mode", "scripted");
     localStorage.removeItem("pilot-coach-apikey");
-    setMode("setup");
-    setMsgs([]);
-    coachStateRef.current = createInitialState();
+    setApiKey("");
+    setMode("scripted");
+    setShowSettings(false);
   };
 
   // Send message (works for both AI and scripted)
@@ -143,11 +174,46 @@ export default function CoachPage() {
   // ═══ CHAT INTERFACE (both AI and Scripted) ═══
   return (
     <div className="mx-auto flex h-full max-w-2xl flex-col">
+      {/* Settings modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setShowSettings(false)}>
+          <div className="w-full max-w-sm rounded-2xl border border-[#2a3e33] bg-[#1a2e23] p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="mb-3 text-base font-bold text-white">
+              {lang === "nl" ? "Coach instellingen" : "Coach settings"}
+            </h3>
+            <label className="mb-1 block text-xs text-gray-400">
+              {lang === "nl" ? "Anthropic API-sleutel (optioneel)" : "Anthropic API key (optional)"}
+            </label>
+            <input
+              value={settingsKey}
+              onChange={e => setSettingsKey(e.target.value)}
+              type="password"
+              placeholder={t.coachApiPlaceholder}
+              className="mb-3 w-full rounded-xl border border-[#2a3e33] bg-[#0f1a14] px-3 py-2.5 text-sm text-white outline-none placeholder:text-gray-600 focus:border-[#A67C52]"
+            />
+            <p className="mb-4 text-[10px] text-gray-600">
+              {lang === "nl"
+                ? "Met een API-sleutel krijg je AI-gestuurde coaching. Zonder sleutel gebruik je de ingebouwde coach."
+                : "With an API key you get AI-powered coaching. Without a key you use the built-in coach."}
+            </p>
+            <div className="flex gap-2">
+              <button onClick={saveApiKey} className="flex-1 rounded-xl bg-[#A67C52] py-2.5 text-sm font-bold text-white">
+                {lang === "nl" ? "Opslaan" : "Save"}
+              </button>
+              {apiKey && (
+                <button onClick={removeApiKey} className="rounded-xl border border-red-800/50 px-3 py-2.5 text-xs text-red-400">
+                  {lang === "nl" ? "Verwijder" : "Remove"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mb-2 flex items-center justify-between">
         <h1 className="text-lg font-black text-white">🧠 {t.coachTitle}</h1>
         <div className="flex gap-2">
           <button onClick={newChat} className="rounded-lg border border-[#2a3e33] px-3 py-1 text-[10px] text-gray-400 hover:text-white">{t.coachNewChat}</button>
-          <button onClick={resetMode} className="rounded-lg border border-[#2a3e33] px-3 py-1 text-[10px] text-gray-500 hover:text-white">⚙️</button>
+          <button onClick={openSettings} className="rounded-lg border border-[#2a3e33] px-3 py-1 text-[10px] text-gray-500 hover:text-white">⚙️</button>
         </div>
       </div>
 

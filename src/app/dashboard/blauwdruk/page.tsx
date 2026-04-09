@@ -187,6 +187,19 @@ export default function BlauwdrukPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-2 text-2xl font-black text-white">🗺️ {t.blauwdrukTitle}</h1>
+
+      {/* Thema sub-navigatie */}
+      <div className="mb-4 flex gap-2">
+        <Link href="/dashboard/blauwdruk/vertrouwen" className="flex flex-1 items-center gap-2 rounded-xl border border-[#D4A76A]/20 bg-[#D4A76A]/5 p-3 text-xs font-medium text-[#D4A76A] hover:bg-[#D4A76A]/10">
+          🛡️ {lang === "nl" ? "Vertrouwen" : "Confidence"}
+        </Link>
+        <Link href="/dashboard/blauwdruk/ontspanning" className="flex flex-1 items-center gap-2 rounded-xl border border-[#4DB6AC]/20 bg-[#4DB6AC]/5 p-3 text-xs font-medium text-[#4DB6AC] hover:bg-[#4DB6AC]/10">
+          🌿 {lang === "nl" ? "Ontspanning" : "Relaxation"}
+        </Link>
+        <Link href="/dashboard/blauwdruk/positieve-afleiding" className="flex flex-1 items-center gap-2 rounded-xl border border-[#9575CD]/20 bg-[#9575CD]/5 p-3 text-xs font-medium text-[#9575CD] hover:bg-[#9575CD]/10">
+          ✨ {lang === "nl" ? "Positieve afleiding" : "Positive distraction"}
+        </Link>
+      </div>
       <p className="mb-4 text-sm text-gray-400">{t.blauwdrukIntro}</p>
 
       <div className="mb-4 rounded-2xl border border-[#2a3e33] bg-[#0f1a14] p-2">

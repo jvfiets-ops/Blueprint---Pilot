@@ -34,6 +34,8 @@ const translations = {
   navBlauwdrukShort: t("Blauwdruk", "Blueprint"),
   navContact: t("Contact met Jesse", "Contact Jesse"),
   navContactShort: t("Jesse", "Jesse"),
+  navRoutines: t("Routines", "Routines"),
+  navRoutinesShort: t("Routines", "Routines"),
 
   // ─── Reflectie v2 ──────────────────────────────────────────
   refDevGoalQ: t("Waar wil je beter in worden?", "What do you want to improve at?"),

@@ -39,6 +39,10 @@ model User {
   energyAudits        EnergyAudit[]
   intentions          Intention[]
   weekReviews         WeekReview[]
+  blauwdrukBronnen    BlauwdrukBron[]
+  rolmodellen         Rolmodel[]
+  antsLogs            AntsLog[]
+  routines            Routine[]
 }
 
 model UserMemory {
@@ -334,4 +338,90 @@ model WeekReview {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, weekStart])
+}
+
+// ─── Blauwdruk Bronnen (Vertrouwen, Ontspanning, Positieve afleiding) ───
+model BlauwdrukBron {
+  id           String   @id @default(cuid())
+  userId       String
+  thema        String   // "VERTROUWEN" | "ONTSPANNING" | "POSITIEVE_AFLEIDING"
+  titel        String
+  beschrijving String?
+  categorie    String   // "HERINNERING" | "PERSOON" | "ACTIVITEIT" | "OMGEVING" | "OBJECT" | "OVERTUIGING" | "HOBBY" | "MEDIA" | "SOCIALE_CONNECTIE" | "ANDERS"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, thema])
+}
+
+// ─── Mentorschap / Rolmodellen (nieuw) ───
+model Rolmodel {
+  id           String   @id @default(cuid())
+  userId       String
+  naam         String
+  omschrijving String?
+  kwaliteit    String   // specifieke bewonderde eigenschap
+  leerpunt     String   // wat kun je van hen leren
+  toepassing   String?  // hoe benut je dit
+  domein       String   // "SPORT" | "KUNST_MUZIEK" | "BUSINESS" | "WETENSCHAP" | "PERSOONLIJK_LEVEN" | "ANDERS"
+  relatie      String   // "PUBLIEK_FIGUUR" | "COACH_TRAINER" | "TEAMGENOOT" | "FAMILIE_VRIEND" | "HISTORISCH_FIGUUR" | "ANDERS"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── ANTs Squasher ───
+model AntsLog {
+  id          String   @id @default(cuid())
+  userId      String
+  antTekst    String
+  antType     String   // "ALLES_OF_NIETS" | "RAMPDENKEN" | "GEDACHTEN_LEZEN" | "TOEKOMST_VOORSPELLEN" | "EMOTIONEEL_REDENEREN" | "ETIKETTEREN" | "MOETEN_DENKEN" | "ONBEKEND"
+  bewijsVoor  String?
+  bewijsTegen String?
+  squash      String
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Routines & Habits ───
+model Routine {
+  id           String       @id @default(cuid())
+  userId       String
+  naam         String
+  beschrijving String?
+  categorie    String       @default("ANDERS") // "SLAAP" | "VOEDING" | "BEWEGING" | "MENTAAL" | "SOCIAAL" | "HERSTEL" | "VOORBEREIDING" | "ANDERS"
+  frequentie   String       @default("DAGELIJKS") // "DAGELIJKS" | "WERKDAGEN" | "WEEKEND" | "WEKELIJKS" | "AANGEPAST"
+  tijdstip     String       @default("FLEXIBEL") // "OCHTEND" | "MIDDAG" | "AVOND" | "NACHT" | "FLEXIBEL"
+  isHelpend    Boolean?
+  kleur        String       @default("#7F77DD")
+  icoon        String       @default("zap")
+  actief       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  logs         RoutineLog[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RoutineLog {
+  id        String   @id @default(cuid())
+  routineId String
+  datum     String   // "YYYY-MM-DD"
+  status    String   // "VOLTOOID" | "OVERGESLAGEN" | "GEDEELTELIJK"
+  notitie   String?
+
+  routine Routine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+
+  @@unique([routineId, datum])
+  @@index([routineId])
 }

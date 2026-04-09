@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", icon: "🪞", labelKey: "navReflectie" as const, exact: true },
   { href: "/dashboard/coach", icon: "🧠", labelKey: "navCoach" as const },
   { href: "/dashboard/toolkit", icon: "🛠️", labelKey: "navToolkit" as const },
+  { href: "/dashboard/routines", icon: "🔄", labelKey: "navRoutines" as const },
   { href: "/dashboard/blauwdruk", icon: "🗺️", labelKey: "navBlauwdruk" as const },
   { href: "/dashboard/contact", icon: "📞", labelKey: "navContact" as const },
 ];

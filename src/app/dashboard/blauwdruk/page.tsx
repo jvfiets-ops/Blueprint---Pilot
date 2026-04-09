@@ -19,10 +19,20 @@ const DEFAULT_DOMAIN_KEYS = [
   "domIdentiteit", "domTijd", "domFamilie", "domGeloof", "domLeven", "domVertrouwd",
 ] as const;
 
+// Map Dutch domain names to i18n keys (for domains saved without nameKey)
+const NL_NAME_TO_KEY: Record<string, string> = {};
+(() => {
+  const nlT = getT("nl");
+  for (const key of DEFAULT_DOMAIN_KEYS) {
+    NL_NAME_TO_KEY[nlT[key]] = key;
+  }
+})();
+
 function getTranslatedName(nameKey: string | undefined, name: string, lang: Lang): string {
-  if (!nameKey) return name;
+  const key = nameKey || NL_NAME_TO_KEY[name];
+  if (!key) return name;
   const tr = getT(lang);
-  return tr[nameKey as keyof typeof tr] || name;
+  return tr[key as keyof typeof tr] || name;
 }
 
 export default function BlauwdrukPage() {
@@ -48,7 +58,14 @@ export default function BlauwdrukPage() {
     loadedRef.current = true;
     const stored = localStorage.getItem("pilot-blueprint");
     if (stored) {
-      setRawDomains(JSON.parse(stored));
+      // Migrate: add nameKey to domains that don't have it
+      const parsed: Domain[] = JSON.parse(stored);
+      const migrated = parsed.map(d => ({
+        ...d,
+        nameKey: d.nameKey || NL_NAME_TO_KEY[d.name] || undefined,
+      }));
+      setRawDomains(migrated);
+      localStorage.setItem("pilot-blueprint", JSON.stringify(migrated));
     } else {
       const tr = getT("nl");
       const defaults: Domain[] = DEFAULT_DOMAIN_KEYS.map((key, i) => ({

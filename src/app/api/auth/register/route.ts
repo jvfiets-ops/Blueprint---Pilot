@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { ensureTablesExist } from "@/lib/init-tables";
 
 const ADMIN_EMAILS = ["jvfiets@gmail.com"];
 
 export async function POST(req: NextRequest) {
+  await ensureTablesExist();
   const { name, email, password } = await req.json();
 
   if (!name?.trim() || !email?.trim() || !password) {

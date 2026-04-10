@@ -14,6 +14,7 @@ interface ReflectionEntry {
 export default function ReflectiePage() {
   const [lang] = useLang();
   const t = getT(lang);
+  const nl = lang === "nl";
 
   const [devGoal, setDevGoal] = useState("");
   const [devGoalSaved, setDevGoalSaved] = useState("");
@@ -23,6 +24,7 @@ export default function ReflectiePage() {
   const [history, setHistory] = useState<ReflectionEntry[]>([]);
   const [saved, setSaved] = useState(false);
   const [todaySaved, setTodaySaved] = useState(false);
+  const [crossInsight, setCrossInsight] = useState("");
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -84,6 +86,13 @@ export default function ReflectiePage() {
     });
     setTodaySaved(true);
     flashSaved();
+    // Fetch cross-insight based on intention
+    if (intention.trim()) {
+      fetch("/api/cross-insights", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentIntention: intention }),
+      }).then(r => r.json()).then(d => { if (d.insight) setCrossInsight(d.insight); }).catch(() => {});
+    }
   };
 
   const flashSaved = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
@@ -144,6 +153,14 @@ export default function ReflectiePage() {
           {todaySaved ? "✓ " : ""}{t.refSave}
         </button>
       </section>
+
+      {/* Cross-insight */}
+      {crossInsight && (
+        <section className="mb-6 rounded-2xl border border-[#A67C52]/30 bg-[#A67C52]/5 p-4">
+          <p className="mb-1 text-[10px] font-bold uppercase text-[#c9a67a]">💡 {nl ? "Koppeling" : "Connection"}</p>
+          <p className="text-sm leading-relaxed text-gray-300">{crossInsight}</p>
+        </section>
+      )}
 
       {/* Historisch overzicht */}
       <section>

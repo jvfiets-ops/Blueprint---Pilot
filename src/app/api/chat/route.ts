@@ -49,12 +49,34 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Load additional context for enriched coaching
+  const [profiles, recentSessions, mentors, rolmodellen, antsLogs, blauwdrukBronnen] = await Promise.all([
+    prisma.performanceProfile.findMany({ where: { userId: user.id } }).catch(() => []),
+    prisma.chatSession.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 3, select: { summary: true } }).catch(() => []),
+    prisma.mentor.findMany({ where: { userId: user.id } }).catch(() => []),
+    prisma.rolmodel.findMany({ where: { userId: user.id } }).catch(() => []),
+    prisma.antsLog.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 5 }).catch(() => []),
+    prisma.blauwdrukBron.findMany({ where: { userId: user.id }, take: 10 }).catch(() => []),
+  ]);
+
+  // Build enriched context
+  const extraContext: string[] = [];
+  const besteVersie = profiles.find(p => p.bestVersionName);
+  if (besteVersie) extraContext.push(`BESTE VERSIE: "${besteVersie.bestVersionName}" — ${besteVersie.bestVersionDescription || ""}`);
+  if (mentors.length > 0) extraContext.push(`MENTOREN: ${mentors.map(m => `${m.name} (${m.whatTheyTeachMe || ""})`).join(", ")}`);
+  if (rolmodellen.length > 0) extraContext.push(`ROLMODELLEN: ${rolmodellen.map(r => `${r.naam} (kwaliteit: ${r.kwaliteit})`).join(", ")}`);
+  if (antsLogs.length > 0) extraContext.push(`RECENTE ANTs: ${antsLogs.slice(0, 3).map(a => `"${a.antTekst}"`).join(", ")}`);
+  const vertrouwen = blauwdrukBronnen.filter(b => b.thema === "VERTROUWEN");
+  if (vertrouwen.length > 0) extraContext.push(`VERTROUWENSBRONNEN: ${vertrouwen.map(b => b.titel).join(", ")}`);
+  const sessionSummaries = recentSessions.filter(s => s.summary).map(s => s.summary);
+  if (sessionSummaries.length > 0) extraContext.push(`EERDERE GESPREKKEN: ${sessionSummaries.join(" | ")}`);
+
   const systemPrompt = buildReflectionSystemPrompt(user.name, memory ? {
     summary: memory.summary,
     mood_patterns: memory.moodPatterns ? JSON.parse(memory.moodPatterns) : null,
     recurring_stressors: memory.recurringStressors ? JSON.parse(memory.recurringStressors) : null,
     behavioral_signals: memory.behavioralSignals ? JSON.parse(memory.behavioralSignals) : null,
-  } : null);
+  } : null) + (extraContext.length > 0 ? `\n\nAanvullende context over deze gebruiker:\n${extraContext.join("\n")}` : "");
 
   try {
     const provider = getProvider(

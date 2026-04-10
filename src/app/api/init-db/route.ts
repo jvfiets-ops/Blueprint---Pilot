@@ -114,6 +114,31 @@ CREATE TABLE IF NOT EXISTS "WeekReview" (
   "weekStart" TEXT NOT NULL, highlight TEXT, challenge TEXT, "nextWeek" TEXT, "aiSummary" TEXT,
   "createdAt" TIMESTAMPTZ DEFAULT now(), UNIQUE("userId", "weekStart")
 );
+CREATE TABLE IF NOT EXISTS "Message" (
+  id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE,
+  content TEXT NOT NULL, "fromAdmin" BOOLEAN DEFAULT false, read BOOLEAN DEFAULT false,
+  "createdAt" TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS "Message_userId_idx" ON "Message"("userId");
+CREATE TABLE IF NOT EXISTS "ResetRoutine" (
+  id TEXT PRIMARY KEY, "userId" TEXT UNIQUE REFERENCES "User"(id) ON DELETE CASCADE,
+  "faultReaction" TEXT, "letGo" TEXT, signal TEXT, control TEXT,
+  "createdAt" TIMESTAMPTZ DEFAULT now(), "updatedAt" TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS "BlueprintDomain" (
+  id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE,
+  name TEXT NOT NULL, "nameKey" TEXT, positive TEXT, negative TEXT, improve TEXT,
+  "sortOrder" INT DEFAULT 0, "createdAt" TIMESTAMPTZ DEFAULT now(), "updatedAt" TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS "BlueprintDomain_userId_idx" ON "BlueprintDomain"("userId");
+CREATE TABLE IF NOT EXISTS "PushSubscription" (
+  id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE,
+  subscription TEXT NOT NULL, "createdAt" TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS "NotificationPreference" (
+  id TEXT PRIMARY KEY, "userId" TEXT UNIQUE REFERENCES "User"(id) ON DELETE CASCADE,
+  "morningTime" TEXT DEFAULT '08:00', "eveningTime" TEXT DEFAULT '21:00', "pushEnabled" BOOLEAN DEFAULT true
+);
 `;
 
 export async function GET() {

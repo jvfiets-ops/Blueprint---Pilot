@@ -43,6 +43,11 @@ model User {
   rolmodellen         Rolmodel[]
   antsLogs            AntsLog[]
   routines            Routine[]
+  messages            Message[]
+  resetRoutine        ResetRoutine?
+  blueprintDomains    BlueprintDomain[]
+  pushSubscriptions   PushSubscription[]
+  notificationPref    NotificationPreference?
 }
 
 model UserMemory {
@@ -424,4 +429,72 @@ model RoutineLog {
 
   @@unique([routineId, datum])
   @@index([routineId])
+}
+
+// ─── Berichtensysteem (Contact met Jesse) ───
+model Message {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  fromAdmin Boolean  @default(false)
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Reset Routine (migratie van localStorage) ───
+model ResetRoutine {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  faultReaction  String?
+  letGo          String?
+  signal         String?
+  control        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Blauwdruk Domeinen (migratie van localStorage) ───
+model BlueprintDomain {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  nameKey   String?  // i18n key for translation
+  positive  String?
+  negative  String?
+  improve   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Push Notifications ───
+model PushSubscription {
+  id           String   @id @default(cuid())
+  userId       String
+  subscription String   // JSON (endpoint, keys)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  morningTime String  @default("08:00")
+  eveningTime String  @default("21:00")
+  pushEnabled Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

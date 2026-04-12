@@ -4,9 +4,14 @@ import { useState, useEffect } from "react";
 interface UserOverview {
   id: string;
   name: string;
-  email: string;
+  firstName?: string;
+  lastName?: string;
+  email: string | null;
+  role: string;
   createdAt: string;
   approved: boolean;
+  lastActiveAt: string | null;
+  totalSessionDuration: number;
   loginCount: number;
   lastLogin: string | null;
   lastActivity: string | null;
@@ -71,8 +76,11 @@ export default function AdminPage() {
   };
 
   const pending = users.filter((u) => !u.approved);
-  const approved = users.filter((u) => u.approved);
-  const activeToday = approved.filter((u) => u.lastLogin && (Date.now() - new Date(u.lastLogin).getTime()) < 86400000).length;
+  const allUsers = users; // Show all users, not just approved
+  const activeToday = allUsers.filter((u) => {
+    const last = u.lastActiveAt || u.lastLogin;
+    return last && (Date.now() - new Date(last).getTime()) < 86400000;
+  }).length;
 
   if (loading) return <div className="flex h-64 items-center justify-center text-gray-500">Laden...</div>;
   if (error) return <div className="p-8 text-red-400">{error}</div>;
@@ -172,7 +180,7 @@ export default function AdminPage() {
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Wachtend", value: pending.length, color: pending.length > 0 ? "#f59e0b" : "#666" },
-          { label: "Goedgekeurd", value: approved.length, color: "#22c55e" },
+          { label: "Totaal gebruikers", value: allUsers.length, color: "#22c55e" },
           { label: "Actief vandaag", value: activeToday, color: "#c9a67a" },
           { label: "Totaal gesprekken", value: users.reduce((a, u) => a + u._count.chatSessions, 0), color: "#7a9e7e" },
         ].map((kpi) => (
@@ -216,7 +224,7 @@ export default function AdminPage() {
       )}
 
       {/* ── APPROVED USERS TABLE ── */}
-      <h2 className="mb-3 text-sm font-bold text-white">Actieve gebruikers ({approved.length})</h2>
+      <h2 className="mb-3 text-sm font-bold text-white">Alle gebruikers ({allUsers.length})</h2>
       <div className="overflow-hidden rounded-2xl border border-[#2a3e33]">
         <table className="w-full">
           <thead>
@@ -231,17 +239,19 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {approved.map((u) => (
+            {allUsers.map((u) => (
               <tr key={u.id} className="border-b border-[#2a3e33]/50 bg-[#1a2e23] hover:bg-[#1f3429] transition-colors">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-white">{u.name}</div>
-                  <div className="text-[10px] text-gray-600">{u.email}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-white">{u.name}</span>
+                    {u.role === "admin" && <span className="rounded-full bg-[#A67C52]/20 px-1.5 py-0.5 text-[8px] text-[#c9a67a]">admin</span>}
+                  </div>
+                  <div className="text-[10px] text-gray-600">{u.email || "—"}</div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-xs text-gray-400">{daysSince(u.lastLogin)}</span>
-                  {u.lastLogin && <div className="text-[9px] text-gray-600">{formatDate(u.lastLogin)}</div>}
+                  <span className="text-xs text-gray-400">{daysSince(u.lastActiveAt || u.lastLogin)}</span>
                 </td>
-                <td className="px-4 py-3 text-sm font-bold text-white hidden sm:table-cell">{u.loginCount}</td>
+                <td className="px-4 py-3 text-sm font-bold text-white hidden sm:table-cell">{u.loginCount || "—"}</td>
                 <td className="px-4 py-3 text-sm text-gray-300 hidden sm:table-cell">{u._count.chatSessions}</td>
                 <td className="px-4 py-3 text-sm text-gray-300 hidden md:table-cell">{u._count.reflections}</td>
                 <td className="px-4 py-3 text-sm text-gray-300 hidden md:table-cell">{u._count.dailyGoals}</td>
@@ -255,8 +265,8 @@ export default function AdminPage() {
             ))}
           </tbody>
         </table>
-        {approved.length === 0 && (
-          <div className="py-12 text-center text-sm text-gray-600">Nog geen goedgekeurde gebruikers.</div>
+        {allUsers.length === 0 && (
+          <div className="py-12 text-center text-sm text-gray-600">Nog geen gebruikers.</div>
         )}
       </div>
     </div>

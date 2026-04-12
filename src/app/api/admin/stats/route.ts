@@ -8,45 +8,50 @@ export async function GET() {
   if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const users = await prisma.user.findMany({
-    where: { role: "user" },
     select: {
       id: true,
       name: true,
+      firstName: true,
+      lastName: true,
       email: true,
+      role: true,
       createdAt: true,
-      gdprConsent: true,
+      lastActiveAt: true,
+      totalSessionDuration: true,
       _count: {
         select: {
           reflections: true,
           chatSessions: true,
+          dailyGoals: true,
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { lastActiveAt: "desc" },
   });
 
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const recentSessions = await prisma.chatSession.groupBy({
-    by: ["userId"],
-    where: { createdAt: { gte: weekAgo } },
-    _count: true,
-  });
-  const recentSessionMap = Object.fromEntries(recentSessions.map((s) => [s.userId, s._count]));
+  const today = new Date().toISOString().slice(0, 10);
+  const activeToday = users.filter(u => u.lastActiveAt?.toISOString().startsWith(today)).length;
+  const totalSessions = users.reduce((acc, u) => acc + u._count.chatSessions, 0);
 
   const enriched = users.map((u) => ({
     id: u.id,
     name: u.name,
+    firstName: u.firstName,
+    lastName: u.lastName,
     email: u.email,
+    role: u.role,
     createdAt: u.createdAt.toISOString(),
-    gdprConsent: u.gdprConsent,
+    lastActiveAt: u.lastActiveAt?.toISOString() || null,
+    totalSessionDuration: u.totalSessionDuration,
     totalReflections: u._count.reflections,
     totalChatSessions: u._count.chatSessions,
-    recentSessions: recentSessionMap[u.id] || 0,
+    totalGoals: u._count.dailyGoals,
   }));
 
   return NextResponse.json({
     totalUsers: users.length,
-    activeThisWeek: users.filter((u) => recentSessionMap[u.id]).length,
+    activeToday,
+    totalSessions,
     users: enriched,
   });
 }

@@ -80,14 +80,14 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Overview: all users with activity stats
+  // Overview: ALL users (including admins)
   const users = await prisma.user.findMany({
-    where: { role: { not: "admin" } },
     select: {
-      id: true, name: true, email: true, createdAt: true, approved: true,
+      id: true, name: true, firstName: true, lastName: true, email: true,
+      role: true, createdAt: true, approved: true, lastActiveAt: true, totalSessionDuration: true,
       _count: { select: { reflections: true, chatSessions: true, dailyGoals: true } },
     },
-    orderBy: { name: "asc" },
+    orderBy: { lastActiveAt: "desc" },
   });
 
   const enriched = await Promise.all(
@@ -129,9 +129,11 @@ export async function GET(req: NextRequest) {
 
       return {
         ...u,
+        lastActiveAt: u.lastActiveAt?.toISOString() ?? null,
+        totalSessionDuration: u.totalSessionDuration ?? 0,
         loginCount,
-        lastLogin,
-        lastActivity,
+        lastLogin: lastLogin || u.lastActiveAt?.toISOString() || null,
+        lastActivity: lastActivity || u.lastActiveAt?.toISOString() || null,
         lastGoal: lastGoal?.text ?? null,
       };
     })

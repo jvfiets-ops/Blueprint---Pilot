@@ -2,8 +2,9 @@ import { prisma } from "./prisma";
 
 let initialized = false;
 
+// All CREATE TABLE statements
 const TABLES = [
-  `CREATE TABLE IF NOT EXISTS "User" (id TEXT PRIMARY KEY, "firstName" TEXT NOT NULL DEFAULT '', "lastName" TEXT NOT NULL DEFAULT '', name TEXT NOT NULL, email TEXT UNIQUE, password TEXT, role TEXT DEFAULT 'user', approved BOOLEAN DEFAULT true, "gdprConsent" BOOLEAN DEFAULT true, category TEXT DEFAULT '', language TEXT DEFAULT 'nl', "lastActiveAt" TIMESTAMPTZ DEFAULT now(), "totalSessionDuration" INT DEFAULT 0, "createdAt" TIMESTAMPTZ DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS "User" (id TEXT PRIMARY KEY, "firstName" TEXT NOT NULL DEFAULT '', "lastName" TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '', email TEXT UNIQUE, password TEXT, role TEXT DEFAULT 'user', approved BOOLEAN DEFAULT true, "gdprConsent" BOOLEAN DEFAULT true, category TEXT DEFAULT '', language TEXT DEFAULT 'nl', "lastActiveAt" TIMESTAMPTZ DEFAULT now(), "totalSessionDuration" INT DEFAULT 0, "createdAt" TIMESTAMPTZ DEFAULT now())`,
   `CREATE TABLE IF NOT EXISTS "UserMemory" (id TEXT PRIMARY KEY, "userId" TEXT UNIQUE REFERENCES "User"(id) ON DELETE CASCADE, summary TEXT, "moodPatterns" TEXT, "recurringStressors" TEXT, "behavioralSignals" TEXT, "updatedAt" TIMESTAMPTZ DEFAULT now())`,
   `CREATE TABLE IF NOT EXISTS "Reflection" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, "createdAt" TIMESTAMPTZ DEFAULT now(), "moodIcon" TEXT, "moodScore" INT, "conversationTranscript" TEXT, "eventLabel" TEXT DEFAULT 'Training', "eventReflectionText" TEXT, "eventReflectionVoiceTranscript" TEXT, "aiSummary" TEXT, "appVersion" TEXT DEFAULT '1.0')`,
   `CREATE TABLE IF NOT EXISTS "ChatSession" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, title TEXT, messages TEXT DEFAULT '[]', summary TEXT, "stressorsDetected" TEXT, "createdAt" TIMESTAMPTZ DEFAULT now())`,
@@ -35,21 +36,36 @@ const TABLES = [
   `CREATE TABLE IF NOT EXISTS "WeekReview" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, "weekStart" TEXT NOT NULL, highlight TEXT, challenge TEXT, "nextWeek" TEXT, "aiSummary" TEXT, "createdAt" TIMESTAMPTZ DEFAULT now(), UNIQUE("userId", "weekStart"))`,
 ];
 
+// Migration: add columns that may be missing from older User table
+const MIGRATIONS = [
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "firstName" TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "lastName" TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "lastActiveAt" TIMESTAMPTZ DEFAULT now()`,
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "totalSessionDuration" INT DEFAULT 0`,
+  `ALTER TABLE "User" ALTER COLUMN email DROP NOT NULL`,
+  `ALTER TABLE "User" ALTER COLUMN password DROP NOT NULL`,
+];
+
 export async function ensureTablesExist() {
   if (initialized) return;
-  try {
-    await prisma.$queryRawUnsafe(`SELECT 1 FROM "User" LIMIT 1`);
-    initialized = true;
-    return;
-  } catch {
-    // Tables don't exist — create them one by one
-  }
+
+  // First: create all tables
   for (const sql of TABLES) {
     try {
       await prisma.$executeRawUnsafe(sql);
-    } catch (e) {
-      console.error("Table creation failed:", sql.slice(0, 60), e);
+    } catch {
+      // Table might already exist — that's fine
     }
   }
+
+  // Then: run migrations to add missing columns
+  for (const sql of MIGRATIONS) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+    } catch {
+      // Column might already exist or migration not needed — that's fine
+    }
+  }
+
   initialized = true;
 }

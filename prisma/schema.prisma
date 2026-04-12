@@ -9,16 +9,21 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String   // bcrypt hash
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  name         String   // full name (firstName + lastName)
+  email        String?  @unique // TODO: replace with full auth — email/password + verification
+  password     String?  // TODO: replace with full auth — bcrypt hash
   role         String   @default("user")
   approved     Boolean  @default(true)
   gdprConsent  Boolean  @default(true)
-  category     String   @default("atleet")
+  category     String   @default("")
   language     String   @default("nl")
+  lastActiveAt DateTime @default(now())
+  totalSessionDuration Int @default(0) // seconds
   createdAt    DateTime @default(now())
+  // TODO: future auth fields — phoneNumber, isVerified, emailVerified
 
   memory              UserMemory?
   reflections         Reflection[]

@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/onboarding", "/api/auth/onboard", "/api/init-db", "/start"];
+const PUBLIC_PATHS = ["/onboarding", "/api/auth", "/api/init-db", "/start"];
 const TOKEN_NAME = "hpb-user-token";
 
 export function middleware(req: NextRequest) {

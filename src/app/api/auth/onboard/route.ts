@@ -5,24 +5,47 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureTablesExist } from "@/lib/init-tables";
 
-const ADMIN_NAMES = ["jesse"]; // firstName match for admin role
+const ADMIN_NAMES = ["jesse"];
+
+function setCookie(response: NextResponse, userId: string) {
+  response.cookies.set("hpb-user-token", userId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 365 * 24 * 60 * 60,
+  });
+}
 
 export async function POST(req: NextRequest) {
-  try {
-    await ensureTablesExist();
-  } catch {
-    // Continue — tables might already exist
-  }
+  try { await ensureTablesExist(); } catch { /* tables may exist */ }
 
   try {
     const { firstName, lastName } = await req.json();
-
     if (!firstName?.trim() || !lastName?.trim()) {
       return NextResponse.json({ error: "Voornaam en achternaam zijn verplicht." }, { status: 400 });
     }
 
     const trimFirst = firstName.trim();
     const trimLast = lastName.trim();
+
+    // Deduplicatie: check of deze naam al bestaat
+    const existing = await prisma.user.findFirst({
+      where: { firstName: trimFirst, lastName: trimLast },
+    });
+
+    if (existing) {
+      // Bestaand account gevonden — log in
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { lastActiveAt: new Date() },
+      });
+      const response = NextResponse.json({ id: existing.id, name: existing.name, returning: true });
+      setCookie(response, existing.id);
+      return response;
+    }
+
+    // Nieuw account aanmaken
     const fullName = `${trimFirst} ${trimLast}`;
     const isAdmin = ADMIN_NAMES.includes(trimFirst.toLowerCase());
 
@@ -36,20 +59,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Set cookie with userId as token
-    const response = NextResponse.json({
-      id: user.id,
-      name: user.name,
-    }, { status: 201 });
-
-    response.cookies.set("hpb-user-token", user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 365 * 24 * 60 * 60, // 1 year
-    });
-
+    const response = NextResponse.json({ id: user.id, name: user.name }, { status: 201 });
+    setCookie(response, user.id);
     return response;
   } catch (err) {
     console.error("Onboard error:", err);

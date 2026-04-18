@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/hooks/useLang";
+import { usePersona } from "@/hooks/usePersona";
 import { LANGS, getT } from "@/lib/i18n";
+import { CATEGORIES, type Category } from "@/lib/persona";
 
 interface BannerProps {
   userName: string;
@@ -10,13 +12,19 @@ interface BannerProps {
   userRole: string;
 }
 
+// Only show the 3 main categories in the banner picker (atleet/artiest/ondernemer)
+const MAIN_CATEGORIES = CATEGORIES.filter(c => c.key === "atleet" || c.key === "artiest" || c.key === "ondernemer");
+
 export default function Banner({ userName, userEmail, userRole }: BannerProps) {
   const router = useRouter();
   const [lang, setLang] = useLang();
+  const { category, setCategory } = usePersona();
   const [showPicker, setShowPicker] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const t = getT(lang);
   const currentFlag = LANGS.find((l) => l.code === lang)?.flag ?? "🌐";
+  const currentCategory = CATEGORIES.find((c) => c.key === category);
   const isAdmin = userRole === "admin";
 
   const initials = userName
@@ -37,8 +45,45 @@ export default function Banner({ userName, userEmail, userRole }: BannerProps) {
         <h1 className="gradient-text text-sm font-extrabold leading-tight">{t.title}</h1>
       </div>
 
-      {/* Right: Lang + User menu */}
+      {/* Right: Category + Lang + User menu */}
       <div className="flex items-center gap-2.5">
+        {/* Category picker */}
+        <div className="relative">
+          <button
+            onClick={() => setShowCategoryPicker((o) => !o)}
+            className="flex items-center gap-1 rounded-lg border border-[#2a3e33] px-2 py-1 text-xs text-gray-400 transition-colors hover:border-[#A67C52] hover:text-gray-200"
+            title={currentCategory?.label || "Categorie"}
+          >
+            <span>{currentCategory?.icon || "🧭"}</span>
+            <span className="hidden sm:inline">{currentCategory?.label || (lang === "nl" ? "Kies" : "Choose")}</span>
+          </button>
+
+          {showCategoryPicker && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowCategoryPicker(false)} />
+              <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-xl border border-[#2a3e33] bg-[#1a2e23] py-1 shadow-xl">
+                {MAIN_CATEGORIES.map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={() => {
+                      setCategory(c.key as Category);
+                      setShowCategoryPicker(false);
+                    }}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                      category === c.key
+                        ? "bg-[#A67C52]/20 text-[#c9a67a]"
+                        : "text-gray-400 hover:bg-[#152620] hover:text-white"
+                    }`}
+                  >
+                    <span className="text-lg">{c.icon}</span>
+                    <span>{c.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Language picker */}
         <div className="relative">
           <button

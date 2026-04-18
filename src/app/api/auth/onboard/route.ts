@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureTablesExist } from "@/lib/init-tables";
 
 const ADMIN_NAMES = ["jesse"];
+const VALID_CATEGORIES = ["atleet", "artiest", "ondernemer"];
 
 function setCookie(response: NextResponse, userId: string) {
   response.cookies.set("hpb-user-token", userId, {
@@ -21,9 +22,12 @@ export async function POST(req: NextRequest) {
   try { await ensureTablesExist(); } catch { /* tables may exist */ }
 
   try {
-    const { firstName, lastName } = await req.json();
+    const { firstName, lastName, category } = await req.json();
     if (!firstName?.trim() || !lastName?.trim()) {
       return NextResponse.json({ error: "Voornaam en achternaam zijn verplicht." }, { status: 400 });
+    }
+    if (!category || !VALID_CATEGORIES.includes(category)) {
+      return NextResponse.json({ error: "Kies een categorie (Atleet, Artiest of Ondernemer)." }, { status: 400 });
     }
 
     const trimFirst = firstName.trim();
@@ -35,12 +39,16 @@ export async function POST(req: NextRequest) {
     });
 
     if (existing) {
-      // Bestaand account gevonden — log in
+      // Bestaand account gevonden — log in en update eventueel category
       await prisma.user.update({
         where: { id: existing.id },
-        data: { lastActiveAt: new Date() },
+        data: {
+          lastActiveAt: new Date(),
+          // Alleen category updaten als die nog leeg was of expliciet veranderd
+          ...(existing.category !== category ? { category } : {}),
+        },
       });
-      const response = NextResponse.json({ id: existing.id, name: existing.name, returning: true });
+      const response = NextResponse.json({ id: existing.id, name: existing.name, category, returning: true });
       setCookie(response, existing.id);
       return response;
     }
@@ -56,10 +64,11 @@ export async function POST(req: NextRequest) {
         name: fullName,
         role: isAdmin ? "admin" : "user",
         approved: true,
+        category,
       },
     });
 
-    const response = NextResponse.json({ id: user.id, name: user.name }, { status: 201 });
+    const response = NextResponse.json({ id: user.id, name: user.name, category }, { status: 201 });
     setCookie(response, user.id);
     return response;
   } catch (err) {

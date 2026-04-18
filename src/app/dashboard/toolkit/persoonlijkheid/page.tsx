@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import VoiceInput from "@/components/VoiceInput";
 
 // Big Five IPIP-NEO 25-item short scale (5 per trait)
 const QUESTIONS = [
@@ -92,6 +93,11 @@ export default function PersoonlijkheidPage() {
   const [scores, setScores] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [situation, setSituation] = useState("");
+  const [interpreting, setInterpreting] = useState(false);
+  const [interpretation, setInterpretation] = useState<{ id: string; situation: string; fullText: string; createdAt: string } | null>(null);
+  const [interpretations, setInterpretations] = useState<{ id: string; situation: string; fullText: string; createdAt: string }[]>([]);
+  const [showInterp, setShowInterp] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/personality")
@@ -111,6 +117,36 @@ export default function PersoonlijkheidPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  // Load past interpretations whenever we land on results
+  useEffect(() => {
+    if (step === "results") {
+      fetch("/api/personality/interpret")
+        .then((r) => r.json())
+        .then((data) => { if (Array.isArray(data)) setInterpretations(data); })
+        .catch(() => {});
+    }
+  }, [step]);
+
+  const handleInterpret = async () => {
+    if (!situation.trim()) return;
+    setInterpreting(true);
+    setInterpretation(null);
+    try {
+      const res = await fetch("/api/personality/interpret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ situation }),
+      });
+      const data = await res.json();
+      if (data?.fullText) {
+        setInterpretation(data);
+        setInterpretations((prev) => [data, ...prev]);
+        setSituation("");
+      }
+    } catch {}
+    setInterpreting(false);
+  };
 
   const calculateScores = () => {
     const traitScores: Record<string, number[]> = { O: [], C: [], E: [], A: [], N: [] };
@@ -322,6 +358,67 @@ export default function PersoonlijkheidPage() {
               : "Je emotionele stabiliteit is een fundament voor presteren onder druk."}
           </p>
         </div>
+
+        {/* Situationele interpretatie */}
+        <div className="mb-4 rounded-2xl border border-[#2a3e33] bg-[#1a2e23] p-4">
+          <p className="mb-1 text-sm font-semibold text-white">🔍 Wat zegt dit over mij in een specifieke situatie?</p>
+          <p className="mb-3 text-xs text-gray-400">
+            Beschrijf een concrete situatie — de AI analyseert jouw gedrag, gevoel en geeft tips op basis van jouw profiel.
+          </p>
+          <div className="relative mb-2">
+            <textarea
+              value={situation}
+              onChange={(e) => setSituation(e.target.value)}
+              placeholder="Bijv. tijdens een wedstrijd onder druk, bij contractonderhandelingen, op een feestje..."
+              className="w-full rounded-xl border border-[#2a3e33] bg-[#152620] p-3 pr-10 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#A67C52]"
+              rows={3}
+            />
+            <div className="absolute right-2 top-2">
+              <VoiceInput onTranscript={(t) => setSituation((prev) => prev + (prev ? " " : "") + t)} />
+            </div>
+          </div>
+          <button
+            onClick={handleInterpret}
+            disabled={interpreting || !situation.trim()}
+            className="w-full rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-40"
+            style={{ background: "linear-gradient(135deg, #1C3D2E, #A67C52)" }}
+          >
+            {interpreting ? "Bezig..." : "Genereer interpretatie →"}
+          </button>
+
+          {interpretation && (
+            <div className="mt-3 rounded-xl border border-[#A67C52]/30 bg-[#A67C52]/5 p-3">
+              <p className="mb-2 text-[10px] uppercase tracking-wide text-[#c9a67a]">Situatie: {interpretation.situation}</p>
+              <div className="text-xs leading-relaxed text-gray-300 whitespace-pre-wrap">{interpretation.fullText}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Past interpretations */}
+        {interpretations.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Eerdere interpretaties</p>
+            <div className="space-y-2">
+              {interpretations.map((interp) => (
+                <div
+                  key={interp.id}
+                  className="rounded-xl border border-[#2a3e33] bg-[#1a2e23] p-3 cursor-pointer"
+                  onClick={() => setShowInterp(showInterp === interp.id ? null : interp.id)}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-xs font-semibold text-gray-300">{interp.situation}</p>
+                    <span className="shrink-0 text-[10px] text-gray-500">
+                      {new Date(interp.createdAt).toLocaleDateString("nl-NL")}
+                    </span>
+                  </div>
+                  {showInterp === interp.id && (
+                    <div className="mt-2 text-xs leading-relaxed text-gray-400 whitespace-pre-wrap">{interp.fullText}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button
           onClick={() => { setStep("intro"); setAnswers({}); setCurrentQ(0); setScores(null); }}

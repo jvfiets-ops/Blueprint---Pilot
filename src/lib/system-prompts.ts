@@ -5,7 +5,7 @@ export interface UserMemory {
   behavioral_signals?: unknown;
 }
 
-export function buildReflectionSystemPrompt(userName: string, memory: UserMemory | null): string {
+export function buildReflectionSystemPrompt(userName: string, memory: UserMemory | null, categoryLabel?: string): string {
   let memoryBlock = "Dit is je eerste gesprek met deze persoon.";
 
   if (memory) {
@@ -83,8 +83,12 @@ export function buildReflectionSystemPrompt(userName: string, memory: UserMemory
     memoryBlock = parts.join("\n");
   }
 
-  return `Je bent een professionele mentale coach voor ${userName}, gespecialiseerd in het begeleiden van high performers.
+  const categoryContext = categoryLabel
+    ? `\n## Context van deze gebruiker\n${userName} is ${categoryLabel}. Pas je terminologie daarop aan. Spreek over wedstrijden/optredens/pitches in de vorm die bij deze categorie past. Gebruik vakgebiedsspecifieke voorbeelden waar dat helpt.\n`
+    : "";
 
+  return `Je bent een professionele mentale coach voor ${userName}, gespecialiseerd in het begeleiden van high performers.
+${categoryContext}
 ## Jouw rol
 Je combineert inzichten uit de Zelfdeterminatietheorie (SDT) en Cognitieve Gedragstherapie (CGT) om de gebruiker te helpen reflecteren op uitdagingen en patronen.
 

@@ -127,6 +127,27 @@ const translations = {
   domGeloof: t("Geloof & waarden", "Faith & values"),
   domLeven: t("Leven buiten de sport", "Life outside sports"),
   domVertrouwd: t("Vertrouwde kring", "Trusted circle"),
+  domOntspanning: t("Ontspanning", "Relaxation"),
+  domPositieveAfleiding: t("Positieve afleiding", "Positive distraction"),
+
+  // ─── Domain Detail Page ────────────────────────────────────
+  domDetailBegeleider: t("Wie is mijn begeleider/coach op dit vlak?", "Who is my coach/guide in this area?"),
+  domDetailAandacht: t("Op welke manier besteed ik hier aandacht aan?", "How do I pay attention to this?"),
+  domDetailWatBrengt: t("Wat brengt me dat?", "What does that bring me?"),
+  domDetailWatGaatGoed: t("Wat gaat goed?", "What is going well?"),
+  domDetailWatGaatMinder: t("Wat gaat minder?", "What is not going so well?"),
+  domDetailWatAnders: t("Wat wil ik anders?", "What do I want to change?"),
+  domDetailReflectie: t("Hoe reflecteer ik hierop?", "How do I reflect on this?"),
+  domDetailAutoSave: t("Automatisch opgeslagen", "Auto-saved"),
+  domDetailSaving: t("Opslaan...", "Saving..."),
+
+  // ─── Persoonlijkheid — Situationele interpretatie ──────────
+  persIntTitle: t("Wat zegt dit over mij in een specifieke situatie?", "What does this say about me in a specific situation?"),
+  persIntDesc: t("Beschrijf een concrete situatie — de AI analyseert jouw gedrag, gevoel en geeft tips op basis van jouw profiel.", "Describe a concrete situation — the AI analyses your behaviour, feelings and gives tips based on your profile."),
+  persSituationPh: t("Bijv. tijdens een wedstrijd onder druk, bij contractonderhandelingen, op een feestje...", "E.g. during a high-pressure match, in contract negotiations, at a party..."),
+  persGenerate: t("Genereer interpretatie →", "Generate interpretation →"),
+  persGenerating: t("Bezig...", "Generating..."),
+  persPastTitle: t("Eerdere interpretaties", "Previous interpretations"),
 
   // ─── Contact ───────────────────────────────────────────────
   contactTitle: t("Contact met Jesse", "Contact Jesse"),

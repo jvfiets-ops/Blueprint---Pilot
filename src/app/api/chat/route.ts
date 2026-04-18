@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getProvider } from "@/lib/ai/provider";
 import { buildReflectionSystemPrompt } from "@/lib/system-prompts";
 import { decrypt } from "@/lib/encryption";
+import { getPersona, type Category, type Lang } from "@/lib/persona";
 
 const DEMO_LIMIT = 20;
 
@@ -71,12 +72,19 @@ export async function POST(req: NextRequest) {
   const sessionSummaries = recentSessions.filter(s => s.summary).map(s => s.summary);
   if (sessionSummaries.length > 0) extraContext.push(`EERDERE GESPREKKEN: ${sessionSummaries.join(" | ")}`);
 
+  // Load full user record to get category + language
+  const fullUser = await prisma.user.findUnique({ where: { id: user.id }, select: { category: true, language: true } });
+  const personaCategory = (fullUser?.category || "") as Category;
+  const personaLang = ((fullUser?.language || "nl") as Lang);
+  const persona = getPersona(personaCategory, personaLang === "nl" ? "nl" : "en");
+  const categoryLabel = personaCategory ? persona.categoryLabel : undefined;
+
   const systemPrompt = buildReflectionSystemPrompt(user.name, memory ? {
     summary: memory.summary,
     mood_patterns: memory.moodPatterns ? JSON.parse(memory.moodPatterns) : null,
     recurring_stressors: memory.recurringStressors ? JSON.parse(memory.recurringStressors) : null,
     behavioral_signals: memory.behavioralSignals ? JSON.parse(memory.behavioralSignals) : null,
-  } : null) + (extraContext.length > 0 ? `\n\nAanvullende context over deze gebruiker:\n${extraContext.join("\n")}` : "");
+  } : null, categoryLabel) + (extraContext.length > 0 ? `\n\nAanvullende context over deze gebruiker:\n${extraContext.join("\n")}` : "");
 
   try {
     const provider = getProvider(

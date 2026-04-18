@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useLang } from "@/hooks/useLang";
 import { getT, type Lang } from "@/lib/i18n";
 import VoiceInput from "@/components/VoiceInput";
@@ -17,7 +18,32 @@ interface Domain {
 const DEFAULT_DOMAIN_KEYS = [
   "domFysiek", "domMentaal", "domMedia", "domFinancien", "domRelaties", "domSlaap",
   "domIdentiteit", "domTijd", "domFamilie", "domGeloof", "domLeven", "domVertrouwd",
+  "domOntspanning", "domPositieveAfleiding",
 ] as const;
+
+// Map nameKey to URL slug for the [domain] detail page
+const DOMAIN_SLUG: Record<string, string> = {
+  domFysiek: "fysiek",
+  domMentaal: "mentaal",
+  domMedia: "media",
+  domFinancien: "financien",
+  domRelaties: "relaties",
+  domSlaap: "slaap",
+  domIdentiteit: "identiteit",
+  domTijd: "tijd",
+  domFamilie: "familie",
+  domGeloof: "geloof",
+  domLeven: "leven",
+  domVertrouwd: "vertrouwd",
+  domOntspanning: "ontspanning",
+  domPositieveAfleiding: "positieve-afleiding",
+};
+
+// Special colors for the newly added domains
+const DOMAIN_COLOR: Record<string, string> = {
+  domOntspanning: "#4DB6AC",       // teal
+  domPositieveAfleiding: "#9575CD", // purple
+};
 
 // Map Dutch domain names to i18n keys (for domains saved without nameKey)
 const NL_NAME_TO_KEY: Record<string, string> = {};
@@ -38,6 +64,7 @@ function getTranslatedName(nameKey: string | undefined, name: string, lang: Lang
 export default function BlauwdrukPage() {
   const [lang] = useLang();
   const t = getT(lang);
+  const router = useRouter();
 
   const [rawDomains, setRawDomains] = useState<Domain[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -64,8 +91,26 @@ export default function BlauwdrukPage() {
         ...d,
         nameKey: d.nameKey || NL_NAME_TO_KEY[d.name] || undefined,
       }));
-      setRawDomains(migrated);
-      localStorage.setItem("pilot-blueprint", JSON.stringify(migrated));
+
+      // Migrate: add new domains (ontspanning + positieve-afleiding) if missing
+      const presentKeys = new Set(migrated.map(d => d.nameKey).filter(Boolean));
+      const tr = getT("nl");
+      const toAdd: Domain[] = [];
+      for (const key of ["domOntspanning", "domPositieveAfleiding"] as const) {
+        if (!presentKeys.has(key)) {
+          toAdd.push({
+            id: `d_${key}_${Date.now()}`,
+            name: tr[key] || key,
+            nameKey: key,
+            positive: "",
+            negative: "",
+            improve: "",
+          });
+        }
+      }
+      const final = [...migrated, ...toAdd];
+      setRawDomains(final);
+      localStorage.setItem("pilot-blueprint", JSON.stringify(final));
     } else {
       const tr = getT("nl");
       const defaults: Domain[] = DEFAULT_DOMAIN_KEYS.map((key, i) => ({
@@ -134,12 +179,17 @@ export default function BlauwdrukPage() {
       const x = cx + radius * Math.cos(angle);
       const y = cy + radius * Math.sin(angle);
       const hasFill = d.positive || d.negative || d.improve;
+      const specialColor = d.nameKey ? DOMAIN_COLOR[d.nameKey] : undefined;
 
       ctx.beginPath();
       ctx.arc(x, y, 20, 0, 2 * Math.PI);
-      ctx.fillStyle = hasFill ? "#7a9e7e" : "#2a3e33";
+      if (specialColor) {
+        ctx.fillStyle = hasFill ? specialColor : specialColor + "33";
+      } else {
+        ctx.fillStyle = hasFill ? "#7a9e7e" : "#2a3e33";
+      }
       ctx.fill();
-      ctx.strokeStyle = selectedId === d.id ? "#c9a67a" : "#3a4e43";
+      ctx.strokeStyle = selectedId === d.id ? "#c9a67a" : (specialColor || "#3a4e43");
       ctx.lineWidth = selectedId === d.id ? 2 : 1;
       ctx.stroke();
 
@@ -176,7 +226,15 @@ export default function BlauwdrukPage() {
       const x = cx + radius * Math.cos(angle);
       const y = cy + radius * Math.sin(angle);
       if (Math.hypot(mx - x, my - y) < 25) {
-        setSelectedId(domains[i].id);
+        const d = domains[i];
+        // If domain has a known slug (i18n key), navigate to the detail page.
+        const slug = d.nameKey ? DOMAIN_SLUG[d.nameKey] : undefined;
+        if (slug) {
+          router.push(`/dashboard/blauwdruk/${slug}`);
+          return;
+        }
+        // Custom domain (user-added) — edit inline
+        setSelectedId(d.id);
         return;
       }
     }
@@ -205,19 +263,19 @@ export default function BlauwdrukPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-2 text-2xl font-black text-white">🗺️ {t.blauwdrukTitle}</h1>
 
-      {/* Thema sub-navigatie */}
-      <div className="mb-4 flex gap-2">
-        <Link href="/dashboard/blauwdruk/vertrouwen" className="flex flex-1 items-center gap-2 rounded-xl border border-[#D4A76A]/20 bg-[#D4A76A]/5 p-3 text-xs font-medium text-[#D4A76A] hover:bg-[#D4A76A]/10">
-          🛡️ {lang === "nl" ? "Vertrouwen" : "Confidence"}
-        </Link>
-        <Link href="/dashboard/blauwdruk/ontspanning" className="flex flex-1 items-center gap-2 rounded-xl border border-[#4DB6AC]/20 bg-[#4DB6AC]/5 p-3 text-xs font-medium text-[#4DB6AC] hover:bg-[#4DB6AC]/10">
-          🌿 {lang === "nl" ? "Ontspanning" : "Relaxation"}
-        </Link>
-        <Link href="/dashboard/blauwdruk/positieve-afleiding" className="flex flex-1 items-center gap-2 rounded-xl border border-[#9575CD]/20 bg-[#9575CD]/5 p-3 text-xs font-medium text-[#9575CD] hover:bg-[#9575CD]/10">
-          ✨ {lang === "nl" ? "Positieve afleiding" : "Positive distraction"}
+      {/* Vertrouwen is verplaatst naar "Beste versie" in de toolkit */}
+      <div className="mb-4">
+        <Link href="/dashboard/toolkit/beste-versie" className="flex items-center justify-between gap-2 rounded-xl border border-[#D4A76A]/20 bg-[#D4A76A]/5 p-3 text-xs font-medium text-[#D4A76A] hover:bg-[#D4A76A]/10">
+          <span>🛡️ {lang === "nl" ? "Zelfvertrouwen staat nu onder 'Beste versie' in de toolkit" : "Confidence is now under 'Best version' in the toolkit"}</span>
+          <span>→</span>
         </Link>
       </div>
-      <p className="mb-4 text-sm text-gray-400">{t.blauwdrukIntro}</p>
+      <p className="mb-2 text-sm text-gray-400">{t.blauwdrukIntro}</p>
+      <p className="mb-4 text-xs text-gray-500">
+        {lang === "nl"
+          ? "Klik op een domein om het te verdiepen: wie begeleidt je, hoe besteed je er aandacht aan, wat gaat goed, wat wil je anders?"
+          : "Click on a domain to deepen it: who guides you, how do you pay attention, what goes well, what do you want to change?"}
+      </p>
 
       <div className="mb-4 rounded-2xl border border-[#2a3e33] bg-[#0f1a14] p-2">
         <canvas ref={canvasRef} onClick={handleCanvasClick} className="h-[400px] w-full cursor-pointer" />

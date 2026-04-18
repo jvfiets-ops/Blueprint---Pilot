@@ -34,6 +34,10 @@ const TABLES = [
   `CREATE TABLE IF NOT EXISTS "EnergyAudit" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, activity TEXT NOT NULL, quadrant TEXT NOT NULL, "createdAt" TIMESTAMPTZ DEFAULT now())`,
   `CREATE TABLE IF NOT EXISTS "Intention" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, date TEXT NOT NULL, activity TEXT NOT NULL, intention TEXT NOT NULL, "followUpScore" INT, "followUpNote" TEXT, "createdAt" TIMESTAMPTZ DEFAULT now())`,
   `CREATE TABLE IF NOT EXISTS "WeekReview" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, "weekStart" TEXT NOT NULL, highlight TEXT, challenge TEXT, "nextWeek" TEXT, "aiSummary" TEXT, "createdAt" TIMESTAMPTZ DEFAULT now(), UNIQUE("userId", "weekStart"))`,
+  // Update 4: BlueprintDomainDetail
+  `CREATE TABLE IF NOT EXISTS "BlueprintDomainDetail" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, domain TEXT NOT NULL, begeleider TEXT, aandacht TEXT, "watBrengt" TEXT, "watGaatGoed" TEXT, "watGaatMinder" TEXT, "watAnders" TEXT, reflectie TEXT, "createdAt" TIMESTAMPTZ DEFAULT now(), "updatedAt" TIMESTAMPTZ DEFAULT now(), UNIQUE("userId", domain))`,
+  // Update 5: PersonalityInterpretation
+  `CREATE TABLE IF NOT EXISTS "PersonalityInterpretation" (id TEXT PRIMARY KEY, "userId" TEXT REFERENCES "User"(id) ON DELETE CASCADE, situation TEXT NOT NULL, "fullText" TEXT NOT NULL, "createdAt" TIMESTAMPTZ DEFAULT now())`,
 ];
 
 // Migration: add columns that may be missing from older User table
@@ -44,6 +48,7 @@ const MIGRATIONS = [
   `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "totalSessionDuration" INT DEFAULT 0`,
   `ALTER TABLE "User" ALTER COLUMN email DROP NOT NULL`,
   `ALTER TABLE "User" ALTER COLUMN password DROP NOT NULL`,
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS category TEXT DEFAULT ''`,
 ];
 
 export async function ensureTablesExist() {

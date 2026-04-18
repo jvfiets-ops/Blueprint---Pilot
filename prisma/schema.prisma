@@ -53,6 +53,8 @@ model User {
   blueprintDomains    BlueprintDomain[]
   pushSubscriptions   PushSubscription[]
   notificationPref    NotificationPreference?
+  blueprintDomainDetails BlueprintDomainDetail[]
+  personalityInterpretations PersonalityInterpretation[]
 }
 
 model UserMemory {
@@ -502,4 +504,37 @@ model NotificationPreference {
   pushEnabled Boolean @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Per-domein verdiepingsdetail (Update 4)
+model BlueprintDomainDetail {
+  id             String   @id @default(cuid())
+  userId         String
+  domain         String   // "fysiek" | "mentaal" | "ontspanning" | ...
+  begeleider     String?  // Wie is mijn begeleider/coach op dit vlak?
+  aandacht       String?  // Op welke manier besteed ik hier aandacht aan?
+  watBrengt      String?  // Wat brengt me dat?
+  watGaatGoed    String?  // Wat gaat goed?
+  watGaatMinder  String?  // Wat gaat minder?
+  watAnders      String?  // Wat wil ik anders?
+  reflectie      String?  // Hoe reflecteer ik hierop?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, domain])
+}
+
+// Situationele persoonlijkheidsinterpretatie (Update 5)
+model PersonalityInterpretation {
+  id         String   @id @default(cuid())
+  userId     String
+  situation  String   // De situatie die de gebruiker heeft beschreven
+  fullText   String   // Volledige AI-response
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

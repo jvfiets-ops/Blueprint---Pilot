@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import VoiceInput from "@/components/VoiceInput";
 
 type Context = "training" | "wedstrijd" | "algemeen";
 
@@ -180,6 +181,120 @@ export default function BesteVersieClient({ initialProfiles }: { initialProfiles
           {saved ? "✅ Opgeslagen!" : "Opslaan"}
         </button>
       </div>
+
+      {/* Zelfvertrouwen sectie — verplaatst vanuit Blauwdruk > Vertrouwen */}
+      <ConfidenceSection />
     </div>
+  );
+}
+
+// ─── Zelfvertrouwen sectie ────────────────────────────────────────────
+// Slaat antwoorden op als BlauwdrukBron met thema="VERTROUWEN"
+function ConfidenceSection() {
+  const [sources, setSources] = useState("");          // Waar haal jij je zelfvertrouwen uit?
+  const [empowerment, setEmpowerment] = useState("");  // Wat maakt jou zelfverzekerd?
+  const [strength, setStrength] = useState("");        // Wat maakt jou krachtig?
+  const [loading, setLoading] = useState(true);
+  const [existingIds, setExistingIds] = useState<Record<string, string>>({});
+  const [confSaved, setConfSaved] = useState(false);
+
+  // Categorie-specifieke labels die we gebruiken om bronnen te herkennen
+  const LABEL_SOURCES = "__confidence_sources__";
+  const LABEL_EMPOWER = "__confidence_empowerment__";
+  const LABEL_STRENGTH = "__confidence_strength__";
+
+  useEffect(() => {
+    fetch("/api/blauwdruk-bronnen?thema=VERTROUWEN")
+      .then(r => r.json())
+      .then(d => {
+        if (!Array.isArray(d)) return;
+        const map: Record<string, string> = {};
+        for (const b of d) {
+          if (b.titel === LABEL_SOURCES) { setSources(b.beschrijving || ""); map.sources = b.id; }
+          if (b.titel === LABEL_EMPOWER) { setEmpowerment(b.beschrijving || ""); map.empowerment = b.id; }
+          if (b.titel === LABEL_STRENGTH) { setStrength(b.beschrijving || ""); map.strength = b.id; }
+        }
+        setExistingIds(map);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const upsert = async (titel: string, beschrijving: string, existingId?: string) => {
+    if (existingId) {
+      // delete + recreate is easiest given current API has no PUT for bronnen
+      await fetch("/api/blauwdruk-bronnen", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: existingId }),
+      }).catch(() => {});
+    }
+    const res = await fetch("/api/blauwdruk-bronnen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thema: "VERTROUWEN", titel, beschrijving, categorie: "OVERTUIGING" }),
+    });
+    const bron = await res.json();
+    return bron?.id as string | undefined;
+  };
+
+  const saveConfidence = async () => {
+    const [s, e, st] = await Promise.all([
+      upsert(LABEL_SOURCES, sources, existingIds.sources),
+      upsert(LABEL_EMPOWER, empowerment, existingIds.empowerment),
+      upsert(LABEL_STRENGTH, strength, existingIds.strength),
+    ]);
+    setExistingIds({
+      sources: s ?? existingIds.sources,
+      empowerment: e ?? existingIds.empowerment,
+      strength: st ?? existingIds.strength,
+    });
+    setConfSaved(true);
+    setTimeout(() => setConfSaved(false), 2000);
+  };
+
+  if (loading) return null;
+
+  const fields: { label: string; value: string; set: (v: string) => void }[] = [
+    { label: "Waar haal jij je zelfvertrouwen uit?", value: sources, set: setSources },
+    { label: "Wat maakt jou zelfverzekerd?", value: empowerment, set: setEmpowerment },
+    { label: "Wat maakt jou krachtig?", value: strength, set: setStrength },
+  ];
+
+  return (
+    <section className="mt-8 rounded-2xl border border-[#D4A76A]/30 bg-[#D4A76A]/5 p-5">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-xl">🛡️</span>
+        <h3 className="text-base font-black text-[#D4A76A]">Zelfvertrouwen</h3>
+      </div>
+      <p className="mb-4 text-xs text-gray-400">
+        Je beste versie staat of valt met zelfvertrouwen. Beantwoord deze drie vragen voor jezelf.
+      </p>
+
+      {fields.map((f, i) => (
+        <div key={i} className="mb-3">
+          <label className="mb-1 block text-xs font-semibold text-gray-400">{f.label}</label>
+          <div className="flex gap-2">
+            <textarea
+              value={f.value}
+              onChange={e => f.set(e.target.value)}
+              rows={2}
+              className="flex-1 resize-none rounded-xl border border-[#2a3e33] bg-[#0f1a14] px-3 py-2 text-sm text-white outline-none placeholder:text-gray-600 focus:border-[#D4A76A]"
+            />
+            <VoiceInput
+              onTranscript={text => f.set(f.value ? f.value + " " + text : text)}
+              lang="nl"
+            />
+          </div>
+        </div>
+      ))}
+
+      <button
+        onClick={saveConfidence}
+        className="mt-2 w-full rounded-xl bg-[#D4A76A] py-2.5 text-sm font-bold text-white"
+      >
+        {confSaved ? "✅ Opgeslagen!" : "Zelfvertrouwen opslaan"}
+      </button>
+    </section>
   );
 }
